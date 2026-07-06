@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AO E2E Test Platform</title>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+<style>
+  :root {
+    --bg: #0d1117;
+    --bg-soft: #161b22;
+    --bg-card: #1c2128;
+    --border: #30363d;
+    --text: #e6edf3;
+    --text-dim: #8b949e;
+    --accent: #58a6ff;
+    --green: #3fb950;
+    --amber: #d29922;
+    --red: #f85149;
+    --purple: #bc8cff;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+    line-height: 1.65;
+  }
+  .wrap { max-width: 960px; margin: 0 auto; padding: 0 24px; }
+  header {
+    padding: 72px 0 48px;
+    border-bottom: 1px solid var(--border);
+    background: linear-gradient(180deg, #0d1a2d 0%, var(--bg) 100%);
+  }
+  header h1 { font-size: 2.4rem; letter-spacing: -0.5px; }
+  header .tagline { color: var(--text-dim); font-size: 1.15rem; margin-top: 12px; max-width: 720px; }
+  .pill {
+    display: inline-block; font-size: 0.75rem; font-weight: 600;
+    padding: 3px 10px; border-radius: 999px; margin-right: 8px; margin-top: 20px;
+    border: 1px solid var(--border); color: var(--accent);
+  }
+  nav {
+    position: sticky; top: 0; z-index: 10;
+    background: rgba(13,17,23,0.92); backdrop-filter: blur(8px);
+    border-bottom: 1px solid var(--border);
+  }
+  nav .wrap { display: flex; gap: 20px; overflow-x: auto; padding: 12px 24px; }
+  nav a { color: var(--text-dim); text-decoration: none; font-size: 0.85rem; white-space: nowrap; }
+  nav a:hover { color: var(--accent); }
+  section { padding: 56px 0 8px; }
+  h2 {
+    font-size: 1.6rem; margin-bottom: 8px;
+    padding-bottom: 8px; border-bottom: 1px solid var(--border);
+  }
+  h2 .num { color: var(--accent); font-weight: 700; margin-right: 10px; }
+  h3 { font-size: 1.15rem; margin: 28px 0 10px; color: var(--accent); }
+  p { margin: 12px 0; color: var(--text); }
+  p.dim, li.dim { color: var(--text-dim); }
+  .lead { font-size: 1.05rem; color: var(--text-dim); margin-bottom: 20px; }
+  ul, ol { margin: 12px 0 12px 24px; }
+  li { margin: 6px 0; }
+  code {
+    background: var(--bg-soft); border: 1px solid var(--border);
+    padding: 1px 6px; border-radius: 5px; font-size: 0.88em;
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  }
+  pre {
+    background: var(--bg-soft); border: 1px solid var(--border);
+    border-radius: 8px; padding: 16px; overflow-x: auto; margin: 16px 0;
+    font-size: 0.85rem; line-height: 1.5;
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  }
+  pre code { background: none; border: none; padding: 0; }
+  table {
+    width: 100%; border-collapse: collapse; margin: 16px 0; font-size: 0.9rem;
+  }
+  th, td { border: 1px solid var(--border); padding: 10px 12px; text-align: left; vertical-align: top; }
+  th { background: var(--bg-soft); color: var(--accent); font-weight: 600; }
+  td { background: var(--bg-card); }
+  .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; margin: 20px 0; }
+  .card {
+    background: var(--bg-card); border: 1px solid var(--border);
+    border-radius: 10px; padding: 18px 20px;
+  }
+  .card h4 { color: var(--accent); font-size: 1rem; margin-bottom: 8px; }
+  .card p { font-size: 0.88rem; color: var(--text-dim); margin: 6px 0; }
+  .card .tag {
+    display: inline-block; font-size: 0.7rem; font-weight: 700;
+    padding: 2px 8px; border-radius: 4px; margin-bottom: 8px;
+    background: rgba(88,166,255,0.12); color: var(--accent);
+  }
+  .callout {
+    border-left: 4px solid var(--accent); background: var(--bg-soft);
+    padding: 14px 18px; border-radius: 0 8px 8px 0; margin: 20px 0;
+  }
+  .callout.green { border-left-color: var(--green); }
+  .callout.amber { border-left-color: var(--amber); }
+  .callout b { color: var(--accent); }
+  .callout.green b { color: var(--green); }
+  .callout.amber b { color: var(--amber); }
+  .mermaid { background: var(--bg-soft); border: 1px solid var(--border); border-radius: 10px; padding: 20px; margin: 20px 0; display: flex; justify-content: center; }
+  .vrow { display: flex; gap: 14px; align-items: flex-start; margin: 14px 0; }
+  .vbadge {
+    flex-shrink: 0; width: 52px; text-align: center; font-weight: 800; font-size: 0.95rem;
+    padding: 6px 0; border-radius: 8px; margin-top: 2px;
+  }
+  .v0 { background: rgba(63,185,80,0.15); color: var(--green); border: 1px solid rgba(63,185,80,0.4); }
+  .v1 { background: rgba(88,166,255,0.15); color: var(--accent); border: 1px solid rgba(88,166,255,0.4); }
+  .v2 { background: rgba(210,153,34,0.15); color: var(--amber); border: 1px solid rgba(210,153,34,0.4); }
+  .v3 { background: rgba(188,140,255,0.15); color: var(--purple); border: 1px solid rgba(188,140,255,0.4); }
+  .v4 { background: rgba(248,81,73,0.15); color: var(--red); border: 1px solid rgba(248,81,73,0.4); }
+  .vbody h4 { font-size: 1.05rem; margin-bottom: 4px; }
+  .vbody .goal { color: var(--text-dim); font-size: 0.85rem; font-style: italic; }
+  footer {
+    margin-top: 64px; padding: 32px 0; border-top: 1px solid var(--border);
+    color: var(--text-dim); font-size: 0.85rem; text-align: center;
+  }
+  strong { color: var(--text); }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap">
+    <h1>AO E2E Test Platform</h1>
+    <p class="tagline">A cloud-agnostic, pod-per-run testing platform that acts as the end-to-end merge and release gate for Agent Orchestrator. Verdicts flow back into AO so agents can auto-fix failures without a human in the loop.</p>
+    <span class="pill">Kubernetes Jobs</span>
+    <span class="pill">Cloud Agnostic</span>
+    <span class="pill">Pod per Run</span>
+    <span class="pill">GitHub Checks Relay</span>
+  </div>
+</header>
+
+<nav>
+  <div class="wrap">
+    <a href="#overview">Overview</a>
+    <a href="#components">Components</a>
+    <a href="#userflow">User Flow</a>
+    <a href="#state">State Management</a>
+    <a href="#truefoundry">TrueFoundry Playbook</a>
+    <a href="#cloudagnostic">Cloud Agnostic</a>
+    <a href="#scaling">Scaling 100+ Pods</a>
+    <a href="#roadmap">Roadmap v0 to v4</a>
+    <a href="#future">Future Scope</a>
+  </div>
+</nav>
+
+<div class="wrap">
+
+<!-- ============ OVERVIEW ============ -->
+<section id="overview">
+  <h2><span class="num">01</span>Overview</h2>
+  <p class="lead">The problem: Agent Orchestrator spawns fleets of AI coding agents, each producing PRs. Before a PR can merge (or a nightly build can ship), someone has to answer one question: <strong>does this commit actually work end to end?</strong> Today that answer is manual, slow, or missing entirely.</p>
+  <p>The platform answers it automatically. Every commit that needs testing gets a fresh, disposable Kubernetes pod in the dev team's own cloud account. The pod boots the app, runs the e2e suite, posts a pass/fail verdict as a GitHub commit check, uploads artifacts, and dies. No standing environments, no idle compute, no state leaking between runs.</p>
+  <div class="callout">
+    <b>The one-liner:</b> a pod is born per commit tested, lives for minutes, and its only legacy is a verdict and a folder of artifacts. TrueFoundry built a hotel; we are building a food truck on the same road network.
+  </div>
+  <h3>Core design decisions</h3>
+  <ul>
+    <li><strong>Pod per test run, not per PR.</strong> A PR with five pushes consumes five short-lived pods and zero compute in between. Between pushes there is nothing running.</li>
+    <li><strong>No pod reuse, ever.</strong> Reused pods accumulate crud: leftover DB rows, stale dependencies, zombie processes. A merge gate's verdict must be trustworthy, so every run starts from a known-clean world.</li>
+    <li><strong>Latency is solved below the pod.</strong> Warm node pool plus pre-pulled images gives roughly 15 second cold starts. Keeping pods alive to skip boot would pay hours of idle to save seconds.</li>
+    <li><strong>GitHub is the messenger.</strong> No hosted control plane, no resident cluster agent in v1. The pod posts a commit check; AO's existing SCM polling picks it up like any CI status.</li>
+    <li><strong>Runs in the dev team's own cloud subscription.</strong> Code and test data never leave their account. Multi-tenancy and data-residency problems are eliminated by construction.</li>
+  </ul>
+</section>
+
+<!-- ============ COMPONENTS ============ -->
+<section id="components">
+  <h2><span class="num">02</span>Components</h2>
+  <p class="lead">Eight pieces, each with one job. Most are managed cloud primitives; only the runner image, the smoke suite, and the DeployTarget adapter are code we write.</p>
+
+  <div class="cards">
+    <div class="card">
+      <span class="tag">COMPUTE</span>
+      <h4>Kubernetes Cluster (EKS / GKE / AKS)</h4>
+      <p>The universal substrate. One managed cluster in the team's cloud account. ECS was ruled out (AWS-only). Fargate and friends are just a capacity choice underneath, not an architecture decision.</p>
+    </div>
+    <div class="card">
+      <span class="tag">COMPUTE</span>
+      <h4>Warm Node Pool + Cluster Autoscaler</h4>
+      <p>One or two always-on nodes with the base image pre-pulled so Jobs schedule in seconds. The autoscaler adds nodes under burst load and shrinks the pool when quiet.</p>
+    </div>
+    <div class="card">
+      <span class="tag">EXECUTION</span>
+      <h4>K8s Job (one per test run)</h4>
+      <p>The unit of work. Job spec carries the commit sha, repo, and suite to run. Guardrails: <code>activeDeadlineSeconds</code> kills hung runs, <code>ttlSecondsAfterFinished</code> self-cleans finished pods, <code>backoffLimit: 0</code> means no silent retries.</p>
+    </div>
+    <div class="card">
+      <span class="tag">EXECUTION</span>
+      <h4>Test Runner Image</h4>
+      <p>Ubuntu + xvfb + Node + Playwright + the smoke/e2e suite. Per-repo dependencies are baked in and rebuilt only when the lockfile changes. Stored in the cloud's registry (ECR / GAR / ACR).</p>
+    </div>
+    <div class="card">
+      <span class="tag">RELAY</span>
+      <h4>GitHub Commit Check (<code>ao-e2e-gate</code>)</h4>
+      <p>The verdict channel. The pod posts success or failure on the tested sha with a link to artifacts. Branch protection can require the check, which is what turns detection into an actual gate.</p>
+    </div>
+    <div class="card">
+      <span class="tag">RELAY</span>
+      <h4>Artifact Store (S3 / GCS / Blob)</h4>
+      <p>Logs, screenshots, videos, junit reports. Artifacts outlive the pod so a failed run can be inspected long after the pod is gone. Lifecycle rules expire old runs automatically.</p>
+    </div>
+    <div class="card">
+      <span class="tag">CONSUMER</span>
+      <h4>Agent Orchestrator (unchanged core)</h4>
+      <p>AO's existing SCM polling already watches PR checks. A red <code>ao-e2e-gate</code> flows into the lifecycle manager, the dashboard via SSE, notifiers, the agent fix loop, and eventually the Merge Autopilot trust dial. No new inbound plumbing.</p>
+    </div>
+    <div class="card">
+      <span class="tag">ABSTRACTION</span>
+      <h4>DeployTarget Port</h4>
+      <p>A small interface (<code>deploy / status / logs / teardown</code>) between AO and the platform, matching AO's plugin-slot philosophy. The K8s backend is the first implementation, and it stays swappable.</p>
+    </div>
+  </div>
+
+  <h3>Security wiring (one-time Terraform, then reused per repo)</h3>
+  <table>
+    <tr><th>Path</th><th>Mechanism</th><th>Scope</th></tr>
+    <tr><td>Platform to cluster</td><td>Kubeconfig / cloud IAM via OIDC</td><td>Submit and watch Jobs, nothing else</td></tr>
+    <tr><td>Pod to repo (clone)</td><td>Deploy token as a K8s secret</td><td>Read-only, single repo</td></tr>
+    <tr><td>Pod to GitHub (verdict)</td><td>GitHub App installation token</td><td><code>checks:write</code>, short-lived, per repo</td></tr>
+    <tr><td>Pod to artifact store</td><td>Workload identity (IRSA / WIF / Azure WI)</td><td>Write to one bucket prefix; no long-lived keys in containers</td></tr>
+    <tr><td>Blast radius</td><td>Minimal IAM role + NetworkPolicy</td><td>The pod runs agent-written code, treated as semi-hostile: it can reach the artifact bucket and the public internet for package installs, and nothing else. No path to prod VPC, no admin credentials mounted.</td></tr>
+  </table>
+</section>
+
+<!-- ============ USER FLOW ============ -->
+<section id="userflow">
+  <h2><span class="num">03</span>User Flow</h2>
+  <p class="lead">Two flows share identical plumbing and differ only in the trigger: the nightly/weekly pilot (cron) and PR gating (push event).</p>
+
+  <h3>Flow 1: Nightly / weekly build verification (the pilot)</h3>
+  <p>Our nightly pipeline builds macOS, Windows, and Linux installers daily and publishes the auto-updater feed with <strong>zero post-publish verification today</strong>. Nothing ever installs what was just shipped. This makes it the perfect first customer: one run a day, nobody blocked if the platform flakes, and it fills a real gap on day one.</p>
+  <div class="mermaid">
+flowchart TD
+    A["Nightly workflow<br/>13:30 UTC daily"] --> B["Build mac + win + linux<br/>publish prerelease + updater feed"]
+    B --> C["Trigger platform<br/>(workflow step submits K8s Job)"]
+    C --> D["Pod: download Linux nightly asset<br/>install + boot headless (xvfb)"]
+    D --> E["Smoke e2e:<br/>app boots, daemon up,<br/>add project, spawn session"]
+    E --> F["Feed integrity check:<br/>yml points at real assets,<br/>checksums match (all 3 platforms)"]
+    F --> G["Post commit status<br/>ao-nightly-gate on built sha"]
+    G --> H["Upload logs + screenshots<br/>to artifact store"]
+    H --> I["Pod dies (TTL reaps Job)"]
+    I --> J{"Verdict"}
+    J -->|green| K["Nightly trusted"]
+    J -->|red| L["AO picks up red check,<br/>spawns fix agent"]
+  </div>
+  <div class="callout green">
+    <b>Upgrade path:</b> phase one only detects a bad nightly. Phase two gates it: publish the release as a draft, run the pod, and promote the updater feed only on green. Same flow for the weekly/stable release, which is higher stakes and benefits most from gating.
+  </div>
+
+  <h3>Flow 2: PR merge gate (the destination)</h3>
+  <div class="mermaid">
+flowchart TD
+    A["Agent (or human) pushes<br/>commit to PR"] --> B["Webhook / poll detects push"]
+    B --> C["Submit K8s Job for that sha"]
+    C --> D["Pod: clone repo at sha,<br/>build, run e2e suite"]
+    D --> E["Post ao-e2e-gate check<br/>+ artifacts to store"]
+    E --> F["Pod dies"]
+    F --> G{"AO SCM poll<br/>reads check"}
+    G -->|green| H["Merge Autopilot trust dial:<br/>auto-merge or one-touch approve"]
+    G -->|red| I["Lifecycle manager flags session,<br/>agent iterates a fix,<br/>pushes again"]
+    I --> A
+  </div>
+  <ul>
+    <li>A PR with 5 pushes = 5 pods, each alive for minutes. Zero compute between pushes.</li>
+    <li>If a PR is closed or merged while a run is in flight, the Job is cancelled so we never finish testing a dead PR.</li>
+    <li>Artifacts outlive pods, so a red run from three days ago is still inspectable.</li>
+  </ul>
+
+  <h3>Platform coverage caveat (stated honestly)</h3>
+  <p class="dim">Kubernetes pods are Linux containers. The pod executes only the Linux build for real. macOS cannot run in containers at all (Apple licensing), and Windows containers are impractical for Electron GUI testing. Mac and Windows legs get asset-existence, checksum, and feed-integrity checks only. Mitigant: the app's brain (Go daemon + identical JS renderer) is the same on every platform, so most regressions are cross-platform and the Linux smoke run catches them. True Mac/Windows execution coverage later means GitHub-hosted runners posting to the same check.</p>
+</section>
+
+<!-- ============ STATE MANAGEMENT ============ -->
+<section id="state">
+  <h2><span class="num">04</span>State Management and Component Interaction</h2>
+  <p class="lead">Principle: <strong>no new database, no new state store.</strong> Every piece of state already has a natural home, and each component owns exactly one kind of state. The platform adds a state machine, not a stateful service.</p>
+
+  <h3>Who owns what</h3>
+  <table>
+    <tr><th>State</th><th>Owner / source of truth</th><th>Lifetime</th></tr>
+    <tr><td>Test run execution state</td><td>Kubernetes (Job status: Pending, Active, Succeeded, Failed)</td><td>Until Job TTL reaps it (minutes to hours)</td></tr>
+    <tr><td>Verdict (pass / fail / error)</td><td>GitHub commit check <code>ao-e2e-gate</code> on the sha</td><td>Forever, attached to the commit</td></tr>
+    <tr><td>Evidence (logs, screenshots, reports)</td><td>Object store, keyed by <code>repo/sha/run-id</code></td><td>Until lifecycle rule expires it (weeks)</td></tr>
+    <tr><td>Session and PR state inside AO</td><td>AO lifecycle manager (existing canonical states: working, pr_open, ci_failed, mergeable, merged...)</td><td>AO's existing flat-file session store</td></tr>
+    <tr><td>Cluster capacity</td><td>Cluster autoscaler + warm pool config</td><td>Continuous, self-managing</td></tr>
+  </table>
+
+  <h3>Test run state machine</h3>
+  <div class="mermaid">
+stateDiagram-v2
+    [*] --> Queued: trigger fires (push / cron)
+    Queued --> Provisioning: Job submitted to cluster
+    Provisioning --> Running: pod scheduled on warm node (~15s)
+    Running --> Reporting: suite finished
+    Running --> TimedOut: activeDeadlineSeconds hit
+    Running --> Cancelled: PR closed or merged mid-run
+    Reporting --> Passed: check posted green
+    Reporting --> Failed: check posted red
+    TimedOut --> Failed: check posted red (timeout)
+    Cancelled --> [*]: Job deleted, no check posted
+    Passed --> [*]: pod dies, TTL cleanup
+    Failed --> [*]: pod dies, artifacts retained
+  </div>
+
+  <h3>How the components interact (interaction contract)</h3>
+  <ol>
+    <li><strong>Trigger to platform:</strong> a workflow step (or later, webhook receiver) submits a Job spec. The only payload is repo + sha + suite name. Fire and forget.</li>
+    <li><strong>Platform to pod:</strong> Kubernetes owns scheduling, retries (disabled), timeouts, and cleanup. We do not build a scheduler; we configure one.</li>
+    <li><strong>Pod to the world:</strong> the pod is the only writer of verdicts and artifacts. It posts the check and uploads evidence <em>before</em> exiting. If the pod dies without posting, the Job's failure state plus a small watcher marks the check red with reason "runner error", so a crash can never masquerade as a pass.</li>
+    <li><strong>GitHub to AO:</strong> AO's existing SCM polling reads checks on PR heads exactly as it reads CI today. Red gate lands in the lifecycle manager, which flags the session (<code>ci_failed</code> path), streams to the dashboard over SSE, fires notifiers, and hands the failure to the agent fix loop. <strong>Zero new inbound plumbing into AO.</strong></li>
+    <li><strong>AO to cluster (operational only):</strong> a kubeconfig-scoped poll for babysitting: stuck Jobs, queue depth, node health. Never used for verdicts; verdicts only travel through GitHub so there is exactly one source of truth.</li>
+  </ol>
+  <div class="callout">
+    <b>Why verdict-through-GitHub matters:</b> it makes the platform crash-safe and restart-safe. If AO restarts, the check is still on the commit. If the platform is rebuilt from scratch, no verdict history is lost. The commit itself carries its own test record.
+  </div>
+</section>
+
+<!-- ============ TRUEFOUNDRY ============ -->
+<section id="truefoundry">
+  <h2><span class="num">05</span>The TrueFoundry Playbook: What We Took, What We Skipped</h2>
+  <p class="lead">TrueFoundry solved a neighboring problem: run ML workloads in the customer's own cloud, cloud-agnostically, with a good enterprise security story. We studied their architecture deliberately.</p>
+
+  <h3>How TrueFoundry does it today</h3>
+  <ul>
+    <li><strong>Split-plane architecture.</strong> A control plane (API, metadata, RBAC, dashboards; hosted by them or self-hosted) and a compute plane (the customer's own Kubernetes cluster where workloads actually run).</li>
+    <li><strong>Resident cluster agent (tfy-agent).</strong> Installed in the customer cluster, it opens an <em>outbound-only</em> connection to the control plane. The customer never exposes an inbound port and never hands out a kubeconfig. This is a security argument built for enterprise procurement.</li>
+    <li><strong>GitOps deploys via ArgoCD</strong>, workload identity instead of long-lived keys, and integrations into the customer's own secret managers.</li>
+    <li><strong>Center of gravity: long-lived services.</strong> A deployed model API becomes a Kubernetes Deployment with ingress, URLs, autoscaling, and rollout strategies. It stays up until torn down. They also offer a Jobs type for batch and training work, which is run-and-die like ours, but the surrounding machinery is built for residents, not visitors.</li>
+  </ul>
+
+  <h3>The page we took from their playbook</h3>
+  <table>
+    <tr><th>Borrowed idea</th><th>Their version</th><th>Our version</th></tr>
+    <tr>
+      <td><strong>Compute in the customer's cloud, K8s as the universal substrate</strong></td>
+      <td>Customer's EKS/GKE/AKS cluster runs all workloads; clouds become interchangeable</td>
+      <td>Identical. This is the core of both cloud-agnosticism and scaling for us</td>
+    </tr>
+    <tr>
+      <td><strong>Workload identity over static keys</strong></td>
+      <td>Cloud IAM bound to service accounts</td>
+      <td>IRSA / Workload Identity Federation / Azure WI for artifact upload; no keys in images</td>
+    </tr>
+    <tr>
+      <td><strong>Scoped, short-lived credentials</strong></td>
+      <td>Secret-manager integrations, per-workspace tokens</td>
+      <td>Read-only deploy token per repo, short-lived GitHub App token for checks</td>
+    </tr>
+    <tr>
+      <td><strong>The outbound-only agent pattern</strong></td>
+      <td>tfy-agent, in production today</td>
+      <td>Deliberately deferred to a later version (see roadmap). We know exactly what to build when a customer's security review demands it</td>
+    </tr>
+  </table>
+
+  <h3>The pages we deliberately did not take</h3>
+  <table>
+    <tr><th>Their machinery</th><th>Why we skip it (for now)</th></tr>
+    <tr><td>Hosted control plane</td><td>A SaaS brain must command customer clusters continuously. We do not need continuous command: <strong>GitHub is our messenger.</strong> The commit check plus AO's existing polling replaces the entire relay layer.</td></tr>
+    <tr><td>Resident cluster agent</td><td>Exists to serve the hosted control plane. No control plane, no agent. It becomes worth building only for BYOC customers with strict security reviews.</td></tr>
+    <tr><td>Ingress, URLs, autoscaling policies, rollout strategies</td><td>All built for workloads that live. Our workload has a natural ending (the verdict), so a K8s Job with a TTL replaces all of it.</td></tr>
+    <tr><td>SSO / RBAC / multi-tenant product layer</td><td>They serve many customers from one control plane. Everything of ours runs inside one team's account; the trust boundary conversation is one sentence.</td></tr>
+  </table>
+  <div class="callout amber">
+    <b>Honest note:</b> TrueFoundry's outbound-agent design is genuinely the better enterprise pattern. Security teams hate handing out kubeconfigs; "install this agent, it only dials out" clears procurement far more easily. That is precisely why it is on our roadmap (v3) rather than in v1: it is the right machinery, currently without a customer.
+  </div>
+</section>
+
+<!-- ============ CLOUD AGNOSTIC ============ -->
+<section id="cloudagnostic">
+  <h2><span class="num">06</span>How Exactly It Is Cloud Agnostic</h2>
+  <p class="lead">Cloud-agnosticism is not a slogan here; it falls out of one decision: <strong>everything above the node is Kubernetes, and everything below the node is somebody's managed service.</strong></p>
+
+  <h3>The portable layer (identical on every cloud)</h3>
+  <ul>
+    <li>Job specs, pod specs, resource limits, TTLs, deadlines: plain Kubernetes YAML</li>
+    <li>The test runner image: standard OCI container, runs anywhere</li>
+    <li>NetworkPolicies, secrets mounting, service accounts: core K8s primitives</li>
+    <li>The verdict relay: GitHub and object storage APIs, no cloud-specific calls in the pod</li>
+  </ul>
+
+  <h3>The per-cloud adapter (thin, Terraform-shaped)</h3>
+  <table>
+    <tr><th>Concern</th><th>AWS</th><th>GCP</th><th>Azure</th></tr>
+    <tr><td>Managed K8s</td><td>EKS</td><td>GKE</td><td>AKS</td></tr>
+    <tr><td>Image registry</td><td>ECR</td><td>Artifact Registry</td><td>ACR</td></tr>
+    <tr><td>Artifact store</td><td>S3</td><td>GCS</td><td>Blob Storage</td></tr>
+    <tr><td>Workload identity</td><td>IRSA</td><td>Workload Identity Federation</td><td>Azure Workload Identity</td></tr>
+    <tr><td>Serverless capacity (optional)</td><td>Fargate profiles</td><td>GKE Autopilot</td><td>AKS virtual nodes</td></tr>
+  </table>
+  <p>Each column is one Terraform module. The Job specs, the runner image, the smoke suite, and the relay logic do not change by a single line across columns. Supporting a new cloud means writing one more module, not touching the platform.</p>
+  <div class="callout">
+    <b>Why ECS lost:</b> ECS is a fine scheduler, but it is AWS-only. Choosing it would have welded the whole platform to one column of the table above. Kubernetes makes the columns interchangeable, and Fargate-style serverless capacity is still available <em>under</em> K8s where we want it.
+  </div>
+  <h3>The DeployTarget port keeps even K8s swappable</h3>
+  <p>AO talks to the platform through a four-verb interface: <code>deploy(spec)</code>, <code>status(runId)</code>, <code>logs(runId)</code>, <code>teardown(runId)</code>. Kubernetes is the first implementation. If a customer someday wants Nomad, bare VMs, or a fully hosted runner fleet, that is a new adapter behind the same port, matching AO's existing plugin-slot philosophy (runtime, agent, workspace, tracker, SCM, notifier are already pluggable).</p>
+</section>
+
+<!-- ============ SCALING ============ -->
+<section id="scaling">
+  <h2><span class="num">07</span>Scaling: What Happens at 100+ Pods</h2>
+  <p class="lead">The stress case: a dev team with 10 repos, each with 10 active PRs, agents pushing fixes all day. Naive designs keep 100 environments alive. Ours keeps zero.</p>
+
+  <h3>Why 100 "active PRs" does not mean 100 pods</h3>
+  <p>Pods exist per <em>run in flight</em>, not per open PR. A PR is open for days but tested for minutes. Even with 100 open PRs, concurrent runs at any instant are driven by push frequency. If agents collectively push 40 times an hour and a run takes 9 minutes, steady-state concurrency is about 6 pods. Bursts (an agent fleet all pushing after a shared fix) spike higher, and that is exactly what the autoscaler absorbs.</p>
+
+  <h3>The scaling mechanics, layer by layer</h3>
+  <table>
+    <tr><th>Layer</th><th>Mechanism</th><th>Behavior under burst</th></tr>
+    <tr><td>Admission</td><td>Job queue with a concurrency cap (namespace ResourceQuota)</td><td>Runs beyond the cap wait in Queued; nothing falls over, verdicts are just a few minutes later</td></tr>
+    <tr><td>Scheduling</td><td>Warm node pool (1-2 nodes, base image pre-pulled)</td><td>First N pods start in ~15 seconds</td></tr>
+    <tr><td>Capacity</td><td>Cluster autoscaler / Karpenter</td><td>Burst beyond warm capacity adds nodes in 1-2 minutes, then drains them when quiet</td></tr>
+    <tr><td>Isolation</td><td>One pod per run, resource requests + limits per pod</td><td>A pathological test (memory leak, fork bomb) is contained and OOM-killed inside its own pod; 99 other runs unaffected</td></tr>
+    <tr><td>Fairness across repos</td><td>Per-repo quota slice</td><td>One chatty repo cannot starve nine quiet ones</td></tr>
+    <tr><td>Cost floor</td><td>Scale-to-warm-pool, not scale-to-100</td><td>Nights and weekends cost 1-2 small nodes, not a fleet</td></tr>
+  </table>
+
+  <h3>The numbers that make pod-per-run win</h3>
+  <ul>
+    <li><strong>100 alive PR-pods</strong> (4 vCPU / 8 GB each): roughly 400 vCPU reserved 24/7, at ~1% useful utilization. You pay hours of idle to save 15 seconds of boot per run.</li>
+    <li><strong>Pod-per-run at the same load:</strong> single-digit concurrent pods on 2-6 nodes, scaling to zero-plus-warm-pool overnight. Cost tracks test minutes, not PR lifetime.</li>
+    <li><strong>State safety is the hidden win:</strong> at 100 reused pods, "was the failure the commit's fault or the last run's leftovers" becomes a daily debugging tax. Fresh pods make it structurally impossible.</li>
+  </ul>
+  <div class="callout green">
+    <b>Rule of thumb:</b> scale nodes, never lifetimes. Any latency problem gets solved below the pod (warmer nodes, better image caching, baked dependencies), and any throughput problem gets solved beside it (more nodes). Pod lifetime stays: born per commit, dead at verdict.
+  </div>
+</section>
+
+<!-- ============ ROADMAP ============ -->
+<section id="roadmap">
+  <h2><span class="num">08</span>Roadmap: v0 to v4</h2>
+  <p class="lead">Each version is independently shippable and independently valuable. We never build machinery ahead of the customer who needs it.</p>
+
+  <div class="vrow">
+    <div class="vbadge v0">v0</div>
+    <div class="vbody">
+      <h4>Nightly Detector (internal pilot)</h4>
+      <p class="goal">Goal: prove the pipeline on a workload where a flake blocks nobody.</p>
+      <ul>
+        <li>One cluster, one warm node, one runner image</li>
+        <li>Nightly workflow triggers a K8s Job after publish; pod downloads the Linux nightly, installs, boots headless, runs smoke e2e, verifies updater-feed integrity for all three platforms</li>
+        <li>Posts <code>ao-nightly-gate</code> commit status + artifacts, then dies</li>
+        <li>Detection only: a bad nightly is flagged, not blocked</li>
+        <li>Exit criteria: two weeks of nightly verdicts with zero false reds</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="vrow">
+    <div class="vbadge v1">v1</div>
+    <div class="vbody">
+      <h4>Release Gate (nightly + weekly/stable)</h4>
+      <p class="goal">Goal: a bad build cannot ship.</p>
+      <ul>
+        <li>Publish releases as drafts; promote the updater feed only on a green gate</li>
+        <li>Same flow extended to the tag-driven stable/weekly release (higher stakes, biggest payoff)</li>
+        <li>Crash-safe verdicts: a runner crash marks the check red, never silently passes</li>
+        <li>Artifact retention policies and a simple run-history view (links from the check)</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="vrow">
+    <div class="vbadge v2">v2</div>
+    <div class="vbody">
+      <h4>PR Merge Gate + AO Integration (first external teams)</h4>
+      <p class="goal">Goal: the platform becomes AO's e2e merge gate; agents auto-fix red gates.</p>
+      <ul>
+        <li>Trigger on PR pushes; one pod per commit tested; cancel in-flight runs when a PR closes</li>
+        <li><code>ao-e2e-gate</code> required via branch protection</li>
+        <li>AO SCM poll consumes verdicts into the lifecycle manager: dashboard, notifiers, agent fix loop</li>
+        <li>DeployTarget port formalized; Terraform onboarding module per cloud (EKS / GKE / AKS)</li>
+        <li>Per-repo quotas and concurrency caps for multi-repo teams</li>
+        <li>Feeds the Merge Autopilot trust dial: green gate + trust level = no-touch merge</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="vrow">
+    <div class="vbadge v3">v3</div>
+    <div class="vbody">
+      <h4>Hosted Relay + Outbound Agent (enterprise BYOC)</h4>
+      <p class="goal">Goal: pass enterprise security reviews; sell to teams where the AO user does not own the cluster.</p>
+      <ul>
+        <li>This is where we adopt the TrueFoundry tfy-agent pattern: a small resident agent in the customer cluster, outbound-only connection, no kubeconfig handed out</li>
+        <li>Hosted ingest endpoint for real-time log streaming and run events (replaces polling where teams want live tails)</li>
+        <li>Multi-service test stacks: app + db + browser-runner as multi-container pods sharing localhost, for repos whose e2e needs a real stack</li>
+        <li>Optional Mac/Windows execution legs via GitHub-hosted runners posting to the same check</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="vrow">
+    <div class="vbadge v4">v4</div>
+    <div class="vbody">
+      <h4>Test Platform as a Product</h4>
+      <p class="goal">Goal: the gate is the product, sold beyond AO users.</p>
+      <ul>
+        <li>Preview environments (the Flow B we deliberately skipped): standing per-PR stacks with URLs, for teams that want humans clicking, killed on merge/close</li>
+        <li>Flake intelligence: quarantine known-flaky tests, auto-retry policies with evidence, trend dashboards</li>
+        <li>Conflict Radar integration: pairwise merge-tree analysis across agent sessions feeding the same trust dial</li>
+        <li>Multi-cloud failover and org-level RBAC (the last TrueFoundry pages, taken only when customers demand them)</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- ============ FUTURE ============ -->
+<section id="future">
+  <h2><span class="num">09</span>Future Scope and Open Questions</h2>
+  <div class="cards">
+    <div class="card">
+      <h4>Multi-service stacks in one pod</h4>
+      <p>App + database + test runner as sidecars sharing localhost stretches pod-per-run surprisingly far before anything like a preview environment is needed. Where is the cutoff? Likely: when a human needs a URL.</p>
+    </div>
+    <div class="card">
+      <h4>Warm pods with hard cleanup (idle TTL)</h4>
+      <p>If 15-second cold starts ever measurably hurt, a 10-minute idle TTL with a mandatory wipe step between runs is the compromise. Deliberately not in v0-v2: it reintroduces state-leak risk for a latency win nobody has asked for yet.</p>
+    </div>
+    <div class="card">
+      <h4>Mac and Windows execution coverage</h4>
+      <p>Containers cannot cover these legs. Options ranked: GitHub-hosted runners (easy, already used for builds), EC2 Mac instances (expensive, 24h minimum), a small self-hosted runner pool. All post to the same commit check.</p>
+    </div>
+    <div class="card">
+      <h4>Verdict-quality metrics</h4>
+      <p>The gate is only as good as its false-positive rate. Track: false reds per hundred runs, time-to-verdict p50/p95, artifact usefulness on failures. These numbers decide when the trust dial can go fully no-touch.</p>
+    </div>
+    <div class="card">
+      <h4>Cost observability</h4>
+      <p>Per-run cost tagging (repo, PR, sha) so a team can see exactly what their gate costs and which repo's suite is the expensive one. Cheap to add early, painful to retrofit.</p>
+    </div>
+    <div class="card">
+      <h4>Beyond GitHub</h4>
+      <p>The relay is a commit check today. GitLab and Bitbucket equivalents exist and slot behind AO's SCM plugin abstraction when a customer brings them.</p>
+    </div>
+  </div>
+</section>
+
+</div>
+
+<footer>
+  <div class="wrap">
+    AO E2E Test Platform design document. Built as a discussion artifact; everything here is open for debate.
+  </div>
+</footer>
+
+<script>
+  mermaid.initialize({
+    startOnLoad: true,
+    theme: 'dark',
+    themeVariables: {
+      darkMode: true,
+      background: '#161b22',
+      primaryColor: '#1c2128',
+      primaryTextColor: '#e6edf3',
+      primaryBorderColor: '#30363d',
+      lineColor: '#58a6ff',
+      secondaryColor: '#0d1117',
+      tertiaryColor: '#161b22'
+    }
+  });
+</script>
+</body>
+</html>
